@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  roch-builder:
+    build: .
+    privileged: true
+    volumes:
+      - .:/build:ro
+      - ./output:/output
+      - /dev:/dev
+    devices:
+      - /dev/loop-control
+      - /dev/loop0
+      - /dev/loop1
+      - /dev/loop2
+      - /dev/loop3
+      - /dev/loop4
+      - /dev/loop5
+      - /dev/loop6
+      - /dev/loop7
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+    command: build
+
+  roch-qemu:
+    build: .
+    privileged: true
+    volumes:
+      - .:/build:ro
+      - ./output:/output
+      - /dev:/dev
+    devices:
+      - /dev/loop-control
+      - /dev/kvm
+    security_opt:
+      - seccomp:unconfined
+    cap_add:
+      - SYS_ADMIN
+      - NET_ADMIN
+    command: qemu
+    stdin_open: true
+    tty: true

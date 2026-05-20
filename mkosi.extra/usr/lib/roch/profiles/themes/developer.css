@@ -1,0 +1,11 @@
+/* Roch OS - Developer Theme (Tokyo Night Storm) */
+:root {
+    --roch-bg: #24283b;
+    --roch-fg: #a9b1d6;
+    --roch-accent: #7aa2f7;
+    --roch-urgent: #f7768e;
+    --roch-success: #9ece6a;
+    --roch-warning: #e0af68;
+    --roch-surface: #414868;
+    --roch-overlay: #565f89;
+}

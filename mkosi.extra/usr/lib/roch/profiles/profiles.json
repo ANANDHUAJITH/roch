@@ -1,0 +1,203 @@
+{
+  "home": {
+    "name": "Home",
+    "icon": "\ud83c\udfe0",
+    "description": "Minimal home computing",
+    "packages": [
+      "firefox",
+      "thunderbird",
+      "libreoffice-fresh",
+      "vlc",
+      "gimp",
+      "discord",
+      "spotify-launcher",
+      "obs-studio"
+    ],
+    "services": [
+      "NetworkManager",
+      "bluetooth"
+    ],
+    "ui_theme": "catppuccin-mocha",
+    "hypr_config": "home.conf",
+    "security_level": "standard"
+  },
+  "developer": {
+    "name": "Developer",
+    "icon": "\ud83d\udcbb",
+    "description": "Software development environment",
+    "packages": [
+      "neovim",
+      "emacs",
+      "vscode",
+      "jetbrains-toolbox",
+      "nodejs",
+      "npm",
+      "yarn",
+      "rustup",
+      "go",
+      "gcc",
+      "clang",
+      "lldb",
+      "gdb",
+      "valgrind",
+      "cmake",
+      "meson",
+      "ninja",
+      "docker",
+      "docker-compose",
+      "kubectl",
+      "helm",
+      "terraform",
+      "github-cli",
+      "lazygit",
+      "git-delta",
+      "tmux",
+      "zellij",
+      "asciinema",
+      "httpie",
+      "jq"
+    ],
+    "services": [
+      "docker",
+      "podman",
+      "sshd"
+    ],
+    "ui_theme": "tokyonight-storm",
+    "hypr_config": "dev.conf",
+    "security_level": "elevated"
+  },
+  "gaming": {
+    "name": "Gaming",
+    "icon": "\ud83c\udfae",
+    "description": "High-performance gaming",
+    "packages": [
+      "steam",
+      "lutris",
+      "wine-staging",
+      "winetricks",
+      "gamemode",
+      "mangohud",
+      "protontricks",
+      "discord",
+      "obs-studio",
+      "mesa-utils",
+      "vulkan-tools",
+      "lib32-mesa",
+      "joyutils",
+      "antimicrox"
+    ],
+    "services": [
+      "gamemoded"
+    ],
+    "ui_theme": "gaming-red",
+    "hypr_config": "gaming.conf",
+    "security_level": "standard",
+    "kernel_params": [
+      "amd_pstate=active",
+      "intel_pstate=passive"
+    ]
+  },
+  "ai": {
+    "name": "AI/ML",
+    "icon": "\ud83e\udde0",
+    "description": "Artificial Intelligence & Machine Learning",
+    "packages": [
+      "python",
+      "python-pytorch-cuda",
+      "python-tensorflow-cuda",
+      "python-jupyterlab",
+      "python-pandas",
+      "python-numpy",
+      "python-scikit-learn",
+      "python-matplotlib",
+      "python-seaborn",
+      "python-plotly",
+      "python-mlflow",
+      "python-gradio",
+      "ollama",
+      "docker",
+      "nvidia-container-toolkit",
+      "cuda",
+      "cudnn",
+      "tensorrt"
+    ],
+    "services": [
+      "docker",
+      "ollama"
+    ],
+    "ui_theme": "cyber-purple",
+    "hypr_config": "ai.conf",
+    "security_level": "elevated"
+  },
+  "robotics": {
+    "name": "Robotics",
+    "icon": "\ud83e\udd16",
+    "description": "ROS2 & Robotics development",
+    "packages": [
+      "gazebo",
+      "rviz2",
+      "rqt",
+      "python-rosbags",
+      "python-catkin_pkg",
+      "arduino-cli",
+      "platformio",
+      "freecad",
+      "kicad",
+      "openscad",
+      "blender",
+      "meshlab"
+    ],
+    "services": [
+      "ros-daemon"
+    ],
+    "ui_theme": "industrial-orange",
+    "hypr_config": "robotics.conf",
+    "security_level": "standard"
+  },
+  "hacker": {
+    "name": "Hacker",
+    "icon": "\ud83d\udc7e",
+    "description": "Security research & penetration testing",
+    "packages": [
+      "nmap",
+      "masscan",
+      "zmap",
+      "wireshark-qt",
+      "tcpdump",
+      "tshark",
+      "sqlmap",
+      "aircrack-ng",
+      "kismet",
+      "reaver",
+      "hashcat",
+      "john",
+      "hydra",
+      "gobuster",
+      "dirb",
+      "wfuzz",
+      "nikto",
+      "radare2",
+      "ghidra",
+      "proxychains-ng",
+      "tor",
+      "i2pd",
+      "macchanger",
+      "netcat",
+      "socat",
+      "binwalk",
+      "foremost",
+      "testdisk",
+      "sleuthkit"
+    ],
+    "services": [
+      "tor",
+      "auditd",
+      "apparmor"
+    ],
+    "ui_theme": "matrix-green",
+    "hypr_config": "hacker.conf",
+    "security_level": "maximum",
+    "network_isolation": true,
+    "sandbox_apps": true
+  }
+}

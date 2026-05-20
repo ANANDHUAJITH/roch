@@ -1,0 +1,11 @@
+/* Roch OS - Hacker Theme (Matrix Green) */
+:root {
+    --roch-bg: #000000;
+    --roch-fg: #00ff00;
+    --roch-accent: #00ff41;
+    --roch-urgent: #ff0000;
+    --roch-success: #00ff00;
+    --roch-warning: #ffff00;
+    --roch-surface: #0a0a0a;
+    --roch-overlay: #003300;
+}

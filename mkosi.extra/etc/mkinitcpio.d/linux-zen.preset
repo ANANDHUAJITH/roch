@@ -1,0 +1,16 @@
+# mkinitcpio preset for linux-zen (Roch OS)
+
+ALL_config="/etc/mkinitcpio.conf"
+ALL_kver="/boot/vmlinuz-linux-zen"
+
+PRESETS=('default' 'fallback')
+
+#default_config="/etc/mkinitcpio.conf"
+default_image="/boot/initramfs-linux-zen.img"
+#default_uki="/boot/EFI/Linux/roch-os.efi"
+#default_options="--splash /usr/share/systemd/bootctl/splash-arch.bmp"
+
+#fallback_config="/etc/mkinitcpio.conf"
+fallback_image="/boot/initramfs-linux-zen-fallback.img"
+fallback_uki="/boot/EFI/Linux/roch-os-fallback.efi"
+fallback_options="-S autodetect"

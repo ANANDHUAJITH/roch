@@ -1,0 +1,14 @@
+[Unit]
+Description=Roch OS Profile Setup
+After=local-fs.target
+Before=greetd.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/roch-profile-setup
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

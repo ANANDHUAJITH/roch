@@ -1,0 +1,89 @@
+{
+    "layer": "top",
+    "position": "top",
+    "height": 34,
+    "modules-left": ["custom/roch-logo", "hyprland/workspaces", "hyprland/window"],
+    "modules-center": ["custom/profile"],
+    "modules-right": ["tray", "network", "cpu", "memory", "disk", "pulseaudio", "battery", "clock"],
+
+    "custom/roch-logo": {
+        "format": "  Roch OS  ",
+        "tooltip": false,
+        "on-click": "fuzzel --dmenu"
+    },
+
+    "custom/profile": {
+        "format": "{}",
+        "exec": "cat /etc/roch/current_profile 2>/dev/null || echo 'home'",
+        "interval": 5,
+        "return-type": "text",
+        "tooltip": true,
+        "tooltip-format": "Click to switch profile",
+        "on-click": "fuzzel --dmenu < <(echo -e 'home\ndeveloper\ngaming\nai\nrobotics\nhacker') | xargs -I{} sudo roch-profile {}",
+        "signal": 8
+    },
+
+    "hyprland/workspaces": {
+        "format": "{name}",
+        "on-click": "activate"
+    },
+
+    "hyprland/window": {
+        "max-length": 50
+    },
+
+    "cpu": {
+        "format": "󰍛 {usage}%",
+        "tooltip": true,
+        "interval": 2
+    },
+
+    "memory": {
+        "format": "󰘚 {}%",
+        "interval": 5
+    },
+
+    "disk": {
+        "format": "󰋊 {percentage_used}%",
+        "path": "/",
+        "interval": 30
+    },
+
+    "network": {
+        "format-wifi": "󰤨 {essid} ({signalStrength}%)",
+        "format-ethernet": "󰈀 {ipaddr}",
+        "format-disconnected": "󰤭 Offline",
+        "tooltip-format": "{ifname}: {ipaddr}/{cidr}"
+    },
+
+    "pulseaudio": {
+        "format": "{icon} {volume}%",
+        "format-muted": "󰖁 Muted",
+        "format-icons": {
+            "default": ["󰕿", "󰖀", "󰕾"]
+        },
+        "on-click": "pamixer -t",
+        "on-scroll-up": "pamixer -i 5",
+        "on-scroll-down": "pamixer -d 5"
+    },
+
+    "battery": {
+        "states": {
+            "warning": 30,
+            "critical": 15
+        },
+        "format": "{icon} {capacity}%",
+        "format-icons": ["󰁺", "󰁻", "󰁼", "󰁽", "󰁾", "󰁿", "󰂀", "󰂁", "󰂂", "󰁹"]
+    },
+
+    "clock": {
+        "format": "{:%Y-%m-%d %H:%M}",
+        "tooltip-format": "{:%A, %B %d %Y | Week %V}",
+        "interval": 1
+    },
+
+    "tray": {
+        "icon-size": 18,
+        "spacing": 8
+    }
+}

@@ -1,0 +1,15 @@
+polkit.addRule(function(action, subject) {
+    // Allow users in wheel group to run roch-profile without password
+    if (action.id == "org.freedesktop.policykit.exec" &&
+        action.lookup("program") == "/usr/local/bin/roch-profile" &&
+        subject.isInGroup("wheel")) {
+        return polkit.Result.YES;
+    }
+
+    // Allow roch-profile to manage system services
+    if (action.id.indexOf("org.freedesktop.systemd1.manage-unit") == 0 &&
+        subject.isInGroup("wheel") &&
+        subject.active) {
+        return polkit.Result.YES;
+    }
+});

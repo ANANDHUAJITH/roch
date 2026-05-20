@@ -1,0 +1,11 @@
+/* Roch OS - Gaming Theme (Red/Black) */
+:root {
+    --roch-bg: #0d0d0d;
+    --roch-fg: #e0e0e0;
+    --roch-accent: #ff3333;
+    --roch-urgent: #ff0000;
+    --roch-success: #00ff66;
+    --roch-warning: #ffaa00;
+    --roch-surface: #1a1a1a;
+    --roch-overlay: #404040;
+}

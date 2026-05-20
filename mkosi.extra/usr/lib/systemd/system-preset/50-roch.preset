@@ -1,0 +1,18 @@
+# Roch OS Default Presets
+enable NetworkManager.service
+enable iwd.service
+enable bluetooth.service
+enable auditd.service
+enable apparmor.service
+enable nftables.service
+enable reflector.service
+enable snapper-cleanup.timer
+enable snapper-timeline.timer
+enable fstrim.timer
+
+# Hyprland session
+enable greetd.service
+
+# Roch services
+enable roch-profile-setup.service
+enable roch-snapper-setup.service

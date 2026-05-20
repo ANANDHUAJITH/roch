@@ -1,0 +1,30 @@
+#include <tunables/global>
+
+profile roch-default flags=(attach_disconnected,mediate_deleted) {
+  #include <abstractions/base>
+  #include <abstractions/consoles>
+  #include <abstractions/fonts>
+  #include <abstractions/freedesktop.org>
+  #include <abstractions/gnome>
+  #include <abstractions/kde>
+  #include <abstractions/nameservice>
+  #include <abstractions/openssl>
+  #include <abstractions/ssl_certs>
+  #include <abstractions/user-tmp>
+  #include <abstractions/X>
+  #include <abstractions/wayland>
+
+  /ui/** r,
+  /usr/lib/roch/** r,
+  /etc/roch/** r,
+  /var/lib/roch/** rwk,
+
+  # Deny access to sensitive paths
+  deny /etc/shadow r,
+  deny /etc/passwd r,
+  deny /etc/gshadow r,
+  deny /root/** rw,
+  deny /sys/firmware/efi/efivars/** w,
+  deny /proc/sys/** w,
+  deny /sys/** w,
+}

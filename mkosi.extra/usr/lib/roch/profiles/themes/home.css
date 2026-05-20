@@ -1,0 +1,11 @@
+/* Roch OS - Home Theme (Catppuccin Mocha) */
+:root {
+    --roch-bg: #1e1e2e;
+    --roch-fg: #cdd6f4;
+    --roch-accent: #89b4fa;
+    --roch-urgent: #f38ba8;
+    --roch-success: #a6e3a1;
+    --roch-warning: #f9e2af;
+    --roch-surface: #313244;
+    --roch-overlay: #6c7086;
+}

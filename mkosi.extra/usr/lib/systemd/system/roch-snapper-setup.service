@@ -1,0 +1,16 @@
+[Unit]
+Description=Roch OS Snapper Configuration
+After=local-fs.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/bin/bash -c '
+    if [ ! -f /etc/snapper/configs/root ]; then
+        snapper -c root create-config /
+        snapper -c home create-config /home
+    fi
+'
+
+[Install]
+WantedBy=multi-user.target

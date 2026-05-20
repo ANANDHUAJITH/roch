@@ -1,0 +1,247 @@
+#!/usr/bin/env bash
+# Roch OS Profile Manager
+# Usage: roch-profile [home|developer|gaming|ai|robotics|hacker|list|current|snapshot|restore]
+
+set -euo pipefail
+
+PROFILES_DIR="/usr/lib/roch/profiles"
+CONFIG_DIR="/etc/roch"
+UI_DIR="/ui"
+SNAPSHOT_DIR="/var/lib/roch/snapshots"
+PROFILE_JSON="$PROFILES_DIR/profiles.json"
+CURRENT_PROFILE_FILE="$CONFIG_DIR/current_profile"
+
+# Colors
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+CYAN='\033[0;36m'
+NC='\033[0m'
+
+log_info() { echo -e "${BLUE}[ROCH]${NC} $1"; }
+log_ok() { echo -e "${GREEN}[ROCH]${NC} $1"; }
+log_warn() { echo -e "${YELLOW}[ROCH]${NC} $1"; }
+log_err() { echo -e "${RED}[ROCH]${NC} $1"; }
+
+check_root() {
+    if [[ $EUID -ne 0 ]]; then
+        log_err "This command requires root privileges. Use: sudo roch-profile $1"
+        exit 1
+    fi
+}
+
+get_current_profile() {
+    if [[ -f "$CURRENT_PROFILE_FILE" ]]; then
+        cat "$CURRENT_PROFILE_FILE"
+    else
+        echo "home"
+    fi
+}
+
+list_profiles() {
+    log_info "Available Roch OS Profiles:"
+    echo ""
+    local current=$(get_current_profile)
+
+    while IFS= read -r key; do
+        local name=$(jq -r ".[$key].name" "$PROFILE_JSON")
+        local icon=$(jq -r ".[$key].icon" "$PROFILE_JSON")
+        local desc=$(jq -r ".[$key].description" "$PROFILE_JSON")
+        local marker=""
+        [[ "$key" == "$current" ]] && marker="${GREEN}● ACTIVE${NC}"
+
+        printf "  %-12s %s %-15s %s\n" "$key" "$icon" "$name" "$marker"
+        printf "              %s\n\n" "$desc"
+    done < <(jq -r 'keys[]' "$PROFILE_JSON")
+
+    echo "Usage: roch-profile <profile_name>"
+    echo "       roch-profile snapshot <name>"
+    echo "       roch-profile restore <snapshot_name>"
+}
+
+snapshot_system() {
+    check_root "snapshot"
+    local snap_name="${1:-$(date +%Y%m%d-%H%M%S)}"
+
+    log_info "Creating snapshot: $snap_name"
+
+    # Btrfs snapshot of /usr and /ui
+    if [[ -d "/usr" && $(stat -f -c %T /usr) == "btrfs" ]]; then
+        btrfs subvolume snapshot -r /usr "$SNAPSHOT_DIR/$snap_name-usr" 2>/dev/null || true
+    fi
+
+    if [[ -d "/ui" && $(stat -f -c %T /ui) == "btrfs" ]]; then
+        btrfs subvolume snapshot -r /ui "$SNAPSHOT_DIR/$snap_name-ui" 2>/dev/null || true
+    fi
+
+    # Save profile state
+    echo "{\"profile\": \"$(get_current_profile)\", \"date\": \"$(date -Iseconds)\", \"name\": \"$snap_name\"}" > "$SNAPSHOT_DIR/$snap_name.json"
+
+    log_ok "Snapshot '$snap_name' created successfully"
+}
+
+restore_snapshot() {
+    check_root "restore"
+    local snap_name="$1"
+
+    if [[ ! -f "$SNAPSHOT_DIR/$snap_name.json" ]]; then
+        log_err "Snapshot '$snap_name' not found"
+        exit 1
+    fi
+
+    log_warn "This will restore system to snapshot '$snap_name'. Current state will be lost!"
+    read -p "Continue? [y/N]: " confirm
+    [[ "$confirm" =~ ^[Yy]$ ]] || exit 0
+
+    # Restore btrfs subvolumes
+    if [[ -d "$SNAPSHOT_DIR/$snap_name-usr" ]]; then
+        btrfs subvolume delete /usr 2>/dev/null || true
+        btrfs subvolume snapshot "$SNAPSHOT_DIR/$snap_name-usr" /usr
+    fi
+
+    if [[ -d "$SNAPSHOT_DIR/$snap_name-ui" ]]; then
+        btrfs subvolume delete /ui 2>/dev/null || true
+        btrfs subvolume snapshot "$SNAPSHOT_DIR/$snap_name-ui" /ui
+    fi
+
+    log_ok "System restored to snapshot '$snap_name'"
+    log_warn "Reboot required for full effect"
+}
+
+install_profile_packages() {
+    local profile="$1"
+    local packages=$(jq -r ".[$profile].packages[]?" "$PROFILE_JSON" 2>/dev/null | grep -v "(aur)" | grep -v "(optional" | tr '\n' ' ')
+    local aur_packages=$(jq -r ".[$profile].packages[]?" "$PROFILE_JSON" 2>/dev/null | grep "(aur)" | sed 's/ (aur)//' | tr '\n' ' ')
+
+    if [[ -n "$packages" ]]; then
+        log_info "Installing official packages..."
+        pacman -S --needed --noconfirm $packages || log_warn "Some packages failed to install"
+    fi
+
+    if [[ -n "$aur_packages" && -x "$(command -v paru)" ]]; then
+        log_info "Installing AUR packages..."
+        # Run as roch user for AUR
+        su - roch -c "paru -S --needed --noconfirm $aur_packages" || log_warn "Some AUR packages failed"
+    fi
+}
+
+apply_ui_theme() {
+    local profile="$1"
+    local theme=$(jq -r ".[$profile].ui_theme" "$PROFILE_JSON")
+    local hypr_config=$(jq -r ".[$profile].hypr_config" "$PROFILE_JSON")
+
+    log_info "Applying UI theme: $theme"
+
+    # Symlink profile-specific configs
+    ln -sf "$PROFILES_DIR/themes/$theme.css" "$UI_DIR/theme.css" 2>/dev/null || true
+    ln -sf "$PROFILES_DIR/hypr/$hypr_config" "$UI_DIR/hypr/hyprland.conf" 2>/dev/null || true
+
+    # Update waybar profile indicator
+    sed -i "s/\"text\": \".*\"/\"text\": \"$(jq -r ".[$profile].icon" "$PROFILE_JSON") $(jq -r ".[$profile].name" "$PROFILE_JSON")\"/" "$UI_DIR/waybar/config.jsonc" 2>/dev/null || true
+}
+
+configure_security() {
+    local profile="$1"
+    local level=$(jq -r ".[$profile].security_level" "$PROFILE_JSON")
+
+    log_info "Configuring security level: $level"
+
+    case "$level" in
+        "standard")
+            systemctl disable apparmor 2>/dev/null || true
+            systemctl disable auditd 2>/dev/null || true
+            ;;
+        "elevated")
+            systemctl enable apparmor 2>/dev/null || true
+            systemctl disable auditd 2>/dev/null || true
+            ;;
+        "maximum")
+            systemctl enable apparmor 2>/dev/null || true
+            systemctl enable auditd 2>/dev/null || true
+            # Enable strict firejail profiles
+            firecfg 2>/dev/null || true
+            # Network isolation for hacker profile
+            if [[ "$profile" == "hacker" ]]; then
+                nft -f /etc/nftables/strict.conf 2>/dev/null || true
+            fi
+            ;;
+    esac
+}
+
+activate_profile() {
+    local profile="$1"
+
+    if ! jq -e ".[$profile]" "$PROFILE_JSON" >/dev/null 2>&1; then
+        log_err "Unknown profile: $profile"
+        list_profiles
+        exit 1
+    fi
+
+    local current=$(get_current_profile)
+    if [[ "$profile" == "$current" ]]; then
+        log_warn "Profile '$profile' is already active"
+        exit 0
+    fi
+
+    log_info "Activating profile: $(jq -r ".[$profile].name" "$PROFILE_JSON") $(jq -r ".[$profile].icon" "$PROFILE_JSON")"
+
+    # Pre-activation snapshot (auto)
+    snapshot_system "pre-$profile-$(date +%s)"
+
+    # Install packages
+    install_profile_packages "$profile"
+
+    # Apply UI
+    apply_ui_theme "$profile"
+
+    # Configure services
+    local services=$(jq -r ".[$profile].services[]?" "$PROFILE_JSON" 2>/dev/null | tr '\n' ' ')
+    for svc in $services; do
+        systemctl enable "$svc" 2>/dev/null || log_warn "Failed to enable $svc"
+    done
+
+    # Security configuration
+    configure_security "$profile"
+
+    # Save current profile
+    echo "$profile" > "$CURRENT_PROFILE_FILE"
+
+    # Update kernel cmdline for next boot if needed
+    local kparams=$(jq -r ".[$profile].kernel_params[]?" "$PROFILE_JSON" 2>/dev/null | tr '\n' ' ')
+    if [[ -n "$kparams" ]]; then
+        # Update UKI cmdline
+        ukify --cmdline-update="$kparams" /boot/EFI/Linux/roch-os.efi 2>/dev/null || true
+    fi
+
+    log_ok "Profile '$profile' activated successfully!"
+    log_info "Some changes require a logout/relogin or reboot to take full effect."
+
+    # Notify user
+    -u critical -i "dialog-information" "Roch OS" "Profile '$(jq -r ".[$profile].name" "$PROFILE_JSON")' activated!" 2>/dev/null || true
+}
+
+# Main
+case "${1:-list}" in
+    list|ls)
+        list_profiles
+        ;;
+    current)
+        get_current_profile
+        ;;
+    snapshot)
+        snapshot_system "${2:-}"
+        ;;
+    restore)
+        restore_snapshot "${2:-}"
+        ;;
+    home|developer|gaming|ai|robotics|hacker)
+        check_root "$1"
+        activate_profile "$1"
+        ;;
+    *)
+        log_err "Unknown command: $1"
+        list_profiles
+        exit 1
+        ;;
+esac

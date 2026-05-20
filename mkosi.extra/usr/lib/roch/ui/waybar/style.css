@@ -1,0 +1,80 @@
+@import url("/ui/theme.css");
+
+* {
+    font-family: "JetBrainsMono Nerd Font", monospace;
+    font-size: 13px;
+    min-height: 0;
+}
+
+window#waybar {
+    background-color: var(--roch-bg);
+    color: var(--roch-fg);
+    border-bottom: 2px solid var(--roch-accent);
+    transition-property: background-color;
+    transition-duration: 0.5s;
+}
+
+#custom-roch-logo {
+    background-color: var(--roch-accent);
+    color: var(--roch-bg);
+    padding: 0 15px;
+    font-weight: bold;
+    margin: 4px 4px;
+    border-radius: 8px;
+}
+
+#custom-profile {
+    background-color: var(--roch-bg);
+    color: var(--roch-accent);
+    padding: 0 15px;
+    border: 2px solid var(--roch-accent);
+    border-radius: 8px;
+    margin: 4px 4px;
+    font-weight: bold;
+}
+
+#custom-profile:hover {
+    background-color: var(--roch-accent);
+    color: var(--roch-bg);
+}
+
+#workspaces button {
+    padding: 0 10px;
+    color: var(--roch-fg);
+    background-color: transparent;
+    border: none;
+    border-radius: 4px;
+}
+
+#workspaces button:hover {
+    background-color: var(--roch-accent);
+    color: var(--roch-bg);
+}
+
+#workspaces button.focused {
+    background-color: var(--roch-accent);
+    color: var(--roch-bg);
+    font-weight: bold;
+}
+
+#workspaces button.urgent {
+    background-color: var(--roch-urgent);
+    color: var(--roch-bg);
+}
+
+#cpu, #memory, #disk, #network, #pulseaudio, #battery, #clock, #tray {
+    padding: 0 10px;
+    margin: 4px 2px;
+    background-color: #313244;
+    border-radius: 8px;
+}
+
+#battery.critical {
+    background-color: var(--roch-urgent);
+    color: var(--roch-bg);
+}
+
+#battery.warning {
+    background-color: var(--roch-warning);
+    color: var(--roch-bg);
+}

@@ -1,0 +1,47 @@
+#!/bin/bash
+# Roch OS First Boot Setup (runs inside chroot during build)
+
+set -e
+
+echo "[ROCH-SETUP] Configuring Roch OS..."
+
+# Set up /ui symlinks
+mkdir -p /ui
+ln -sf /usr/lib/roch/ui/hypr /ui/hypr
+ln -sf /usr/lib/roch/ui/waybar /ui/waybar
+ln -sf /usr/lib/roch/ui/fuzzel /ui/fuzzel
+ln -sf /usr/lib/roch/ui/foot /ui/foot
+ln -sf /usr/lib/roch/ui/mako /ui/mako
+ln -sf /usr/lib/roch/ui/theme.css /ui/theme.css
+ln -sf /usr/lib/roch/ui/scripts /ui/scripts
+
+# Initialize snapper configs
+snapper -c root create-config / 2>/dev/null || true
+snapper -c home create-config /home 2>/dev/null || true
+
+# Set default profile
+echo "home" > /etc/roch/current_profile
+
+# Create roch user if not exists
+if ! id -u roch &>/dev/null; then
+    useradd -m -G wheel,docker,video,audio,input -s /bin/bash roch
+    echo "roch:roch" | chpasswd
+fi
+
+# Enable all Roch services
+systemctl enable roch-profile-setup.service
+systemctl enable roch-snapper-setup.service
+systemctl enable greetd
+systemctl enable NetworkManager
+systemctl enable auditd
+systemctl enable apparmor
+systemctl enable nftables
+systemctl enable reflector.timer
+systemctl enable fstrim.timer
+systemctl enable snapper-cleanup.timer
+systemctl enable snapper-timeline.timer
+
+# Set up reflector
+reflector --country Global --protocol https --latest 20 --sort rate --save /etc/pacman.d/mirrorlist || true
+
+echo "[ROCH-SETUP] Done!"

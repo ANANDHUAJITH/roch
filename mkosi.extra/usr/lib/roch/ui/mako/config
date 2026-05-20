@@ -1,0 +1,19 @@
+# Roch OS Notifications
+font=JetBrainsMono Nerd Font 10
+background-color=#1e1e2e
+text-color=#cdd6f4
+border-color=#89b4fa
+border-size=2
+border-radius=10
+padding=10
+margin=10
+width=350
+height=150
+anchor=top-right
+default-timeout=5000
+ignore-timeout=0
+
+[urgency=high]
+background-color=#f38ba8
+text-color=#1e1e2e
+border-color=#f38ba8

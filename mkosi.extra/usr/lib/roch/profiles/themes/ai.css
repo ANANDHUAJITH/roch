@@ -1,0 +1,11 @@
+/* Roch OS - AI Theme (Cyber Purple) */
+:root {
+    --roch-bg: #0f0f1a;
+    --roch-fg: #d4d4f0;
+    --roch-accent: #b388ff;
+    --roch-urgent: #ff5252;
+    --roch-success: #69f0ae;
+    --roch-warning: #ffd740;
+    --roch-surface: #1a1a2e;
+    --roch-overlay: #4a4a6a;
+}

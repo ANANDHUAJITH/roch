@@ -1,0 +1,58 @@
+#!/bin/bash
+# Roch OS Package Verification Script
+# Checks if all packages in profiles exist in Arch repos
+
+set -e
+
+echo "=========================================="
+echo "  Roch OS Package Verification"
+echo "=========================================="
+
+PROFILE_FILE="/usr/lib/roch/profiles/profiles.json"
+TMPDIR=$(mktemp -d)
+trap "rm -rf $TMPDIR" EXIT
+
+# Update package database
+echo "[1/3] Updating package database..."
+pacman -Sy --quiet
+
+# Get list of all available packages
+echo "[2/3] Fetching available packages..."
+pacman -Slq > "$TMPDIR/all-packages.txt"
+
+# Check each profile
+echo "[3/3] Verifying profile packages..."
+
+python3 << 'PYTHON'
+import json
+import subprocess
+import sys
+
+with open('/usr/lib/roch/profiles/profiles.json') as f:
+    profiles = json.load(f)
+
+# Get available packages
+result = subprocess.run(['pacman', '-Slq'], capture_output=True, text=True)
+available = set(result.stdout.strip().split('
+'))
+
+missing = {}
+for profile_name, profile_data in profiles.items():
+    pkgs = profile_data.get('packages', [])
+    profile_missing = []
+    for pkg in pkgs:
+        if pkg not in available:
+            profile_missing.append(pkg)
+    if profile_missing:
+        missing[profile_name] = profile_missing
+
+if missing:
+    print("\n⚠ MISSING PACKAGES (not in official repos):\n")
+    for profile, pkgs in missing.items():
+        print(f"  {profile}: {', '.join(pkgs)}")
+    print("\nThese packages need to be installed from AUR or removed.")
+    sys.exit(1)
+else:
+    print("\n✓ All packages verified - all exist in official repositories!")
+    sys.exit(0)
+PYTHON

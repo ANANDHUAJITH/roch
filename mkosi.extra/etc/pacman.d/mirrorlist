@@ -1,0 +1,18 @@
+##
+## Arch Linux repository mirrorlist
+## Generated for Roch OS
+## Verified working mirrors (2026-05-19)
+##
+
+# Geo-redirect mirror (automatically selects closest)
+Server = https://geo.mirror.pkgbuild.com/$repo/os/$arch
+
+# Tier 1 mirrors (direct, high bandwidth)
+Server = https://mirror.rackspace.com/archlinux/$repo/os/$arch
+Server = https://mirrors.kernel.org/archlinux/$repo/os/$arch
+Server = https://mirror.osbeck.com/archlinux/$repo/os/$arch
+Server = https://archlinux.mailtunnel.eu/$repo/os/$arch
+
+# Fallback mirrors
+Server = https://mirror.leaseweb.com/archlinux/$repo/os/$arch
+Server = https://mirror.lty.me/archlinux/$repo/os/$arch

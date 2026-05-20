@@ -1,0 +1,11 @@
+/* Roch OS - Robotics Theme (Industrial Orange) */
+:root {
+    --roch-bg: #1a1a1a;
+    --roch-fg: #e8e8e8;
+    --roch-accent: #ff6d00;
+    --roch-urgent: #ff3d00;
+    --roch-success: #00e676;
+    --roch-warning: #ffab00;
+    --roch-surface: #2d2d2d;
+    --roch-overlay: #616161;
+}

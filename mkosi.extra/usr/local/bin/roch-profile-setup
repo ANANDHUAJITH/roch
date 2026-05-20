@@ -1,0 +1,51 @@
+#!/bin/bash
+# Roch OS First Boot / Profile Setup
+# Sets up /ui symlinks and initial state
+
+set -e
+
+log() { echo "[ROCH-SETUP] $1"; }
+
+# Create /ui directory structure if it doesn't exist
+if [[ ! -d /ui ]]; then
+    log "Creating /ui directory..."
+    mkdir -p /ui
+
+    # Symlink all UI components from /usr/lib/roch/ui
+    ln -sf /usr/lib/roch/ui/hypr /ui/hypr
+    ln -sf /usr/lib/roch/ui/waybar /ui/waybar
+    ln -sf /usr/lib/roch/ui/fuzzel /ui/fuzzel
+    ln -sf /usr/lib/roch/ui/foot /ui/foot
+    ln -sf /usr/lib/roch/ui/mako /ui/mako
+    ln -sf /usr/lib/roch/ui/theme.css /ui/theme.css
+    ln -sf /usr/lib/roch/ui/scripts /ui/scripts
+
+    log "/ui structure created"
+fi
+
+# Ensure current profile file exists
+if [[ ! -f /etc/roch/current_profile ]]; then
+    echo "home" > /etc/roch/current_profile
+    log "Default profile set to 'home'"
+fi
+
+# Create snapshots directory
+mkdir -p /var/lib/roch/snapshots
+mkdir -p /var/lib/roch/profiles
+
+# Set up btrfs subvolumes for /ui if on btrfs
+if [[ $(stat -f -c %T / 2>/dev/null) == "btrfs" ]]; then
+    if ! btrfs subvolume list / | grep -q "ui"; then
+        log "Creating btrfs subvolume for /ui..."
+        # Note: This would need to be done before mount in real setup
+        : # Placeholder for actual subvolume creation
+    fi
+fi
+
+# Fix permissions
+chmod 755 /ui
+chmod 755 /var/lib/roch
+chmod 755 /var/lib/roch/snapshots
+chmod 755 /var/lib/roch/profiles
+
+log "Roch OS setup complete"
