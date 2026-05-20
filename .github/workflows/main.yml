@@ -1,0 +1,131 @@
+name: Build Roch OS
+
+on:
+  push:
+    branches: [ "main", "master" ]
+    paths:
+      - 'mkosi.conf'
+      - 'mkosi.extra/**'
+      - 'mkosi.repart/**'
+      - '.github/workflows/**'
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Pre-install profile'
+        required: false
+        default: 'home'
+        type: choice
+        options:
+          - home
+          - developer
+          - gaming
+          - ai
+          - robotics
+          - hacker
+
+env:
+  IMAGE_NAME: roch-os
+  IMAGE_VERSION: 1.0.0
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:latest
+      options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm base-devel git python python-pip python-virtualenv python-wheel python-setuptools systemd linux-zen linux-zen-headers linux-firmware btrfs-progs dosfstools mtools qemu-full arch-install-scripts reflector sbctl tpm2-tools bubblewrap
+      - name: Install mkosi
+        run: |
+          git clone --depth 1 https://github.com/systemd/mkosi.git /tmp/mkosi
+          cd /tmp/mkosi
+          pip install --break-system-packages . || (python setup.py install --break-system-packages) || (pip install . --user && export PATH="$HOME/.local/bin:$PATH")
+          export PATH="$HOME/.local/bin:$PATH"
+          mkosi --version || (pacman -S --noconfirm mkosi && mkosi --version)
+      - uses: actions/cache@v4
+        with:
+          path: /var/cache/pacman/pkg
+          key: ${{ runner.os }}-pacman-${{ hashFiles('mkosi.conf') }}
+          restore-keys: |
+            ${{ runner.os }}-pacman-
+      - name: Set profile
+        if: github.event.inputs.profile
+        run: sed -i "s/roch.profile=home/roch.profile=${{ github.event.inputs.profile }}/g" mkosi.conf
+      - name: Build image
+        run: |
+          mkdir -p mkosi.output mkosi.cache mkosi.builddir
+          export PATH="$HOME/.local/bin:$PATH"
+          mkosi --force
+        timeout-minutes: 120
+      - name: Generate checksums
+        run: |
+          cd mkosi.output
+          sha256sum * > SHA256SUMS
+          cat SHA256SUMS
+      - uses: actions/upload-artifact@v4
+        with:
+          name: roch-os-image-${{ github.run_number }}
+          path: |
+            mkosi.output/roch-os.raw
+            mkosi.output/roch-os.efi
+            mkosi.output/roch-os.verity
+            mkosi.output/SHA256SUMS
+          retention-days: 7
+
+  test-qemu:
+    needs: build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: roch-os-image-${{ github.run_number }}
+          path: ./mkosi.output
+      - run: |
+          sudo apt-get update
+          sudo apt-get install -y qemu-system-x86 qemu-utils
+      - run: |
+          qemu-system-x86_64 -drive file=mkosi.output/roch-os.raw,format=raw -m 2G -smp 2 -nographic -serial mon:stdio -no-reboot -bios /usr/share/ovmf/OVMF.fd &
+          QEMU_PID=$!
+          sleep 45
+          if kill -0 $QEMU_PID 2>/dev/null; then
+            echo "Boot test passed"
+            kill $QEMU_PID
+            exit 0
+          else
+            echo "Boot test failed"
+            exit 1
+          fi
+        timeout-minutes: 5
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: roch-os-image-${{ github.run_number }}
+          path: ./mkosi.output
+      - uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            mkosi.output/roch-os.raw
+            mkosi.output/roch-os.efi
+            mkosi.output/roch-os.verity
+            mkosi.output/SHA256SUMS
+          body: |
+            ## Roch OS ${{ github.ref_name }}
+            Immutable, profile-based Arch Linux distribution.
+            ### Profiles
+            - Home, Developer, Gaming, AI, Robotics, Hacker
+            ### Install
+            `sudo dd if=roch-os.raw of=/dev/sdX bs=4M status=progress`
+            ### Login
+            User: `roch` / Password: `roch`
